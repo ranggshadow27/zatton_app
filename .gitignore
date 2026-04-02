@@ -3,9 +3,11 @@ __pycache__/
 *.so
 venv/
 env/
+build/
 .vscode/
 .idea/
 *.png
+*.spec
 chromedriver*
 geckodriver*
 .DS_Store

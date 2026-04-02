@@ -17,6 +17,8 @@ class ZabbixAutomationApp:
         self.root = root
         self.root.title("Zatton App")
         self.root.geometry("380x650")
+        self.root.minsize(380, 650)
+        self.root.maxsize(380, 650)
 
         try:
             self.root.iconbitmap("mhg-zabbix-capture.ico")
