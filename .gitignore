@@ -5,9 +5,7 @@ venv/
 env/
 .vscode/
 .idea/
-*.xlsx
 *.png
-*.ico
 chromedriver*
 geckodriver*
 .DS_Store
