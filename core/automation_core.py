@@ -88,14 +88,13 @@ def set_date_input(driver, xpath, date_value, add_log):
     except Exception as e:
         raise Exception(f"Error mengisi date input: {e}")
 
-def check_canvas_text(driver, canvas, add_log):
+def check_canvas_text(driver, canvas, add_log, required_texts):
     try:
         canvas_base64 = driver.execute_script("return arguments[0].toDataURL('image/png').substring(21);", canvas)
         canvas_data = base64.b64decode(canvas_base64)
         image = Image.open(BytesIO(canvas_data))
 
         text = pytesseract.image_to_string(image)
-        required_texts = ["Volume total", "Volume in", "Volume out", "Speed in", "Speed out", "Speed total"]
         missing_texts = [t for t in required_texts if t not in text]
 
         if not missing_texts:
@@ -194,6 +193,7 @@ def process_site_tree(driver, url, site_id, save_folder, start_date, end_date, a
                         table = WebDriverWait(driver, 30).until(
                             EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div[3]/div/div/div[2]/div/div[2]/div[2]/div/div/div/div[2]/div/div/table'))
                         )
+                        
                         rows = table.find_elements(By.TAG_NAME, "tr")
                         volume_total_found = any(
                             cells and cells[0].text.strip() == "Volume Total"
@@ -214,25 +214,47 @@ def process_site_tree(driver, url, site_id, save_folder, start_date, end_date, a
                     return False, status
 
                 # canvas
-                canvas = WebDriverWait(driver, 30).until(
-                    EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div[3]/div/div/div[2]/div/div[2]/div[3]/div/div/div/div/div/canvas'))
+                canvas_speed = WebDriverWait(driver, 30).until(
+                    EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div[3]/div/div/div[2]/div/div[2]/div[3]/div/div/div[2]/div/div[1]/div/canvas'))
                 )
 
                 timeout = 30
                 start_time = time.time()
+                speed_required_texts = ["Speed in", "Speed out", "Speed total"]
                 while time.time() - start_time < timeout:
-                    text_found, image = check_canvas_text(driver, canvas, add_log)
+                    text_found, image = check_canvas_text(driver, canvas_speed, add_log, speed_required_texts)
                     if text_found:
-                        save_path = os.path.join(save_folder, f"{site_id}.png")
+                        save_path = os.path.join(save_folder, f"{site_id}-1.png")
                         image.save(save_path)
-                        add_log(f"> Traffic Capture disimpan di: {save_path} ✅")
+                        add_log(f"> Speed Traffic Capture disimpan di: {save_path} ✅")
                         break
                     time.sleep(1)
                 else:
-                    status = "Timeout: Canvas text not found"
+                    status = "Timeout: Canvas speed text not found"
+                    return False, status
+                
+                # canvas
+                canvas_volume = WebDriverWait(driver, 30).until(
+                    EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div[3]/div/div/div[2]/div/div[2]/div[3]/div/div/div[2]/div/div[2]/div/canvas'))
+                )
+
+                timeout = 30
+                start_time = time.time()
+                volume_required_texts = ["Volume total", "Volume in", "Volume out"]
+                while time.time() - start_time < timeout:
+                    text_found, image = check_canvas_text(driver, canvas_volume, add_log, volume_required_texts)
+                    if text_found:
+                        save_path = os.path.join(save_folder, f"{site_id}-2.png")
+                        image.save(save_path)
+                        add_log(f"> Volume Traffic Capture disimpan di: {save_path} ✅")
+                        break
+                    time.sleep(1)
+                else:
+                    status = "Timeout: Canvas volume text not found"
                     return False, status
 
                 return True, status
+            
 
             except Exception as e:
                 status = f"Error saat mencari tombol, input tanggal, table, dropdown, atau canvas: {e}"
@@ -261,7 +283,7 @@ def main(excel_file, save_folder, start_date, end_date, add_log, update_progress
     if 'capture_status' not in df.columns:
         df['capture_status'] = ""
 
-    df_to_process = df[df['capture_status'].isna() | (df['capture_status'] == "")]
+    df_to_process = df[(df['capture_status'] != "Done Capture")]
 
     if df_to_process.empty:
         add_log("> Tidak ada site ID dengan capture_status kosong atau null untuk diproses.")

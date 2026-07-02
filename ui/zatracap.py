@@ -4,6 +4,7 @@ from tkcalendar import DateEntry
 from tkinter import filedialog, messagebox
 from datetime import datetime
 import threading
+import time
 
 # Import dari core
 from core.utils import check_license
