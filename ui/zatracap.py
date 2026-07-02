@@ -239,7 +239,7 @@ class ZabbixAutomationApp:
             self.time_running = False
             self.root.after(0, lambda: self.start_button.configure(state="normal"))
             self.root.after(0, lambda: self.time_elapsed_label.pack_forget())
-            # TIDAK ADA driver.quit() lagi → sesuai request lu
+            # TIDAK ADA driver.quit() lagi → sesuapyinstaller --clean  --name "ZattonApp"  --onedir  --windowed  --icon="mhg-zabbix-capture.ico"  --upx-dir="../upx"  --add-data "mhg-zabbix-capture.ico;."  --add-data "tesseract;tesseract"  --hidden-import=customtkinter  --hidden-import=tkcalendar  --hidden-import=pytesseract  --hidden-import=pyperclip  --hidden-import=selenium  --hidden-import=webdriver_manager  --hidden-import=ntplib  --collect-all customtkinter  main.pyi request lu
 
 if __name__ == "__main__":
     root = ctk.CTk()
